@@ -15,9 +15,15 @@ private:
     SDL_Texture* loadTexture( std::string path, SDL_Renderer *gRenderer);
 
 public:
-    Game(/* args */);
+    Game();
     ~Game();
+    SDL_Texture*loadTexture( std::string path);
     void render_square(float x, float y, int h, int w, int r, int g, int b, int a);
+    void render_square(float x, float y);
+    void render_t(float x, float y);
+    void render_line(float x, float y);
+    void render_L(float x, float y);
+    void render_L_inverse(float x, float y);
     void render_background();
     void render_grid(int columns, int rows);
     void render_to_screen(){SDL_RenderPresent(gRenderer);}

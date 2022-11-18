@@ -25,40 +25,10 @@ bool loadMedia()
 	//Nothing to load
 	return success;
 }
-
-SDL_Texture* loadTexture( std::string path, SDL_Renderer *gRenderer)
-{
-	//The final texture
-	SDL_Texture* newTexture = NULL;
-
-	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-	if( loadedSurface == NULL )
-	{
-		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
-	}
-	else
-	{
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
-		if( newTexture == NULL )
-		{
-			printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-		}
-
-		//Get rid of old loaded surface
-		SDL_FreeSurface( loadedSurface );
-	}
-
-	return newTexture;
-}
-
-
 int main( int argc, char* args[] )
 {
 	//Start up SDL and create window
 	Game *game = new Game();
-		
 	//Main loop flag
 	bool quit = false;
 	//Event handler
@@ -84,8 +54,11 @@ int main( int argc, char* args[] )
 		
 		game->render_background();
 		game->render_grid(20, 10);
-		game->render_square((int)x, (int)y, SCREEN_WIDTH/5, SCREEN_WIDTH/5,0xFF, 0xFF, 0xFF, 0xFF);
-
+		//game->render_square((int)x, (int)y, SCREEN_WIDTH/5, SCREEN_WIDTH/5,0xFF, 0xFF, 0xFF, 0xFF);
+		//game->render_t(x, y);
+		//game->render_line(x, y);
+		//game->render_L(x, y);
+		game->render_L_inverse(x,y);
 
 		game->render_to_screen();
         auto end = std::chrono::high_resolution_clock::now();
@@ -93,8 +66,5 @@ int main( int argc, char* args[] )
         delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();                
         y+=(delta_time*falling_speed);
 	}
-		
-	
-
 	return 0;
 }

@@ -1,5 +1,19 @@
 #include "Game.h"
 
+Game::Game(/* args */)
+{
+    this->init();
+}
+
+Game::~Game()
+{
+	SDL_DestroyRenderer( gRenderer );
+	SDL_DestroyWindow( gWindow );
+	gWindow = NULL;
+	gRenderer = NULL;
+	IMG_Quit();
+	SDL_Quit();
+}
 bool Game::init()
 {
 	//Initialization flag
@@ -54,24 +68,35 @@ bool Game::init()
 	return success;
 }
 
-Game::Game(/* args */)
+SDL_Texture* Game::loadTexture( std::string path)
 {
-    this->init();
-}
+	//The final texture
+	SDL_Texture* newTexture = NULL;
 
-Game::~Game()
-{
-	SDL_DestroyRenderer( gRenderer );
-	SDL_DestroyWindow( gWindow );
-	gWindow = NULL;
-	gRenderer = NULL;
-	IMG_Quit();
-	SDL_Quit();
+	//Load image at specified path
+	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
+	if( loadedSurface == NULL )
+	{
+		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+	}
+	else
+	{
+		//Create texture from surface pixels
+        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
+		if( newTexture == NULL )
+		{
+			printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+		}
+
+		//Get rid of old loaded surface
+		SDL_FreeSurface( loadedSurface );
+	}
+	return newTexture;
 }
 
 void Game::render_square(float x, float y, int h, int w, int r, int g, int b, int a){
-    SDL_Rect fillRect = { (int)x, (int)y, SCREEN_WIDTH/5, SCREEN_WIDTH/5}; // x,y,w,h -> position, dimensions
-	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+    SDL_Rect fillRect = { (int)x, (int)y, w, h}; // x,y,w,h -> position, dimensions
+	SDL_SetRenderDrawColor( gRenderer, r, g, b, a );		
 	SDL_RenderFillRect( gRenderer, &fillRect );
 }
 
@@ -91,3 +116,58 @@ void Game::render_grid(int columns, int rows){
 	SDL_RenderDrawLine( gRenderer, UNIT*10-1, 0, UNIT*10-1, SCREEN_HEIGHT);
 }
 
+void Game::render_square(float x, float y){
+	SDL_Rect fillRect = { (int)x, (int)y, SCREEN_WIDTH/5, SCREEN_WIDTH/5}; // x,y,w,h -> position, dimensions
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+}
+
+void Game::render_t(float x, float y){
+	SDL_Rect fillRect = { (int)x, (int)y, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+
+	fillRect = { (int)x + UNIT, (int)y, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+
+	fillRect = { (int)x + UNIT*2, (int)y, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+
+	fillRect = { (int)x + UNIT, (int)y + UNIT, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+
+}
+
+void Game::render_line(float x, float y){
+	for(int i=0; i<4; i++){
+		SDL_Rect fillRect = { (int)x + UNIT*i, (int)y, UNIT, UNIT};
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+		SDL_RenderFillRect( gRenderer, &fillRect );
+	}
+}
+
+void Game::render_L(float x, float y){
+	for(int i=0; i<3; i++){
+		SDL_Rect fillRect = { (int)x, (int)y*i, UNIT, UNIT};
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+		SDL_RenderFillRect( gRenderer, &fillRect );
+	}
+	SDL_Rect fillRect = { (int)x + UNIT, (int)y + UNIT*2, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+
+}
+
+void Game::render_L_inverse(float x, float y){
+	for(int i=0; i<3; i++){
+		SDL_Rect fillRect = { (int)x + UNIT, (int)y+ UNIT*i, UNIT, UNIT};
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+		SDL_RenderFillRect( gRenderer, &fillRect );
+	}
+	SDL_Rect fillRect = { (int)x, (int)y + UNIT*2, UNIT, UNIT};
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+}
