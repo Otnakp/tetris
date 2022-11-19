@@ -30,41 +30,6 @@ int main( int argc, char* args[] )
 	//Start up SDL and create window
 	Game *game = new Game();
 	//Main loop flag
-	bool quit = false;
-	//Event handler
-	SDL_Event e;
-	//While application is running
-    float x = 1; float y = 1;
-    int w = UNIT*2; int h = UNIT*2;
-    auto t1 = std::chrono::high_resolution_clock::now();
-    auto t2 = std::chrono::high_resolution_clock::now();
-    float delta_time = 0;
-    float falling_speed = 30;
-	SDL_Renderer *gRenderer = game->get_renderer();
-	while( !quit )
-	{
-        auto start = std::chrono::high_resolution_clock::now();
-		while( SDL_PollEvent( &e ) != 0 )
-		{
-			if( e.type == SDL_QUIT )
-			{
-				quit = true;
-			}
-		}
-		
-		game->render_background();
-		game->render_grid(20, 10);
-		//game->render_square((int)x, (int)y, SCREEN_WIDTH/5, SCREEN_WIDTH/5,0xFF, 0xFF, 0xFF, 0xFF);
-		//game->render_t(x, y);
-		//game->render_line(x, y);
-		//game->render_L(x, y);
-		game->render_L_inverse(x,y);
-
-		game->render_to_screen();
-        auto end = std::chrono::high_resolution_clock::now();
-        auto dur = end - start;
-        delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();                
-        y+=(delta_time*falling_speed);
-	}
+	game->run();
 	return 0;
 }

@@ -1,7 +1,11 @@
 #include "Game.h"
-
-Game::Game(/* args */)
+Game::Game()
 {
+	pieces.push_back(Piece("Square"));
+	pieces.push_back(Piece("Line"));
+	pieces.push_back(Piece("L"));
+	pieces.push_back(Piece("Inverse_L"));
+	pieces.push_back(Piece("T"));
     this->init();
 }
 
@@ -14,6 +18,70 @@ Game::~Game()
 	IMG_Quit();
 	SDL_Quit();
 }
+
+void Game::handle_input(SDL_Event e, bool*quit){
+	if( e.type == SDL_QUIT ){ *quit = true; }
+	switch (e.type)
+	{
+	case SDL_KEYDOWN:
+		if(e.key.keysym.sym == SDLK_a){
+			x -= UNIT * (int)(x>1);
+		}
+		if(e.key.keysym.sym == SDLK_d){
+			x += UNIT * (int)(x<(SCREEN_WIDTH - UNIT*current_piece_width));
+		}
+		break;
+	case SDL_KEYUP:
+        break;
+	default:
+		break;
+	}
+}
+
+void Game::run(){
+	std::random_device rd;
+	std::mt19937 rng(rd());
+	bool quit = false;
+	SDL_Event e;
+	float y = 1;
+    int w = UNIT*2; 
+	int h = UNIT*2;
+    float delta_time = 0;
+    float falling_speed = 30;
+	SDL_Renderer *gRenderer = get_renderer();
+	bool spawn_new_piece = true;
+	int r =0;
+	while( !quit )
+	{
+        auto start = std::chrono::high_resolution_clock::now();
+		if( SDL_PollEvent( &e ) )
+		{
+			handle_input(e, &quit);
+		}
+		render_background();
+		render_grid(20, 10);
+
+		if(spawn_new_piece){
+			std::uniform_int_distribution<int> piece_generator(0,4); // Guaranteed unbiased
+			r = piece_generator(rng);
+			current_piece_width = pieces[r].get_width();
+			x = 2 + (SCREEN_WIDTH / 2) - ((int)current_piece_width/2) - UNIT;
+			spawn_new_piece = false;
+		}
+
+		render_piece(x,y,pieces[r].get_coords());
+		//render_L_inverse(x,y);
+		
+
+
+		render_to_screen();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto dur = end - start;
+        delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();               
+        y+=(delta_time*falling_speed);
+	}
+}
+
 bool Game::init()
 {
 	//Initialization flag
@@ -66,6 +134,17 @@ bool Game::init()
 	}
 
 	return success;
+}
+
+
+void Game::render_piece(float x, float y, std::vector<std::tuple<int,int>> coords){
+	for(int i = 0; i<coords.size(); i++){
+		int a = std::get<0>(coords[i]);
+		int b = std::get<1>(coords[i]);
+		SDL_Rect fillRect = { (int)x + UNIT * a, (int)y+ UNIT*b, UNIT, UNIT};
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+		SDL_RenderFillRect( gRenderer, &fillRect );
+	}
 }
 
 SDL_Texture* Game::loadTexture( std::string path)
