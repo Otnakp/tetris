@@ -6,6 +6,15 @@ Game::Game()
 	pieces.push_back(Piece("L"));
 	pieces.push_back(Piece("Inverse_L"));
 	pieces.push_back(Piece("T"));
+	P = new bool*[GAME_HEIGHT]; 
+	for(int i=0; i<GAME_HEIGHT; i++){
+		P[i] = new bool[GAME_WIDTH];
+	}
+	for(int i=0; i<GAME_WIDTH; i++){
+		for(int j=0;j<GAME_HEIGHT;j++){
+			P[i][j] = false;
+		}
+	}
     this->init();
 }
 
@@ -30,8 +39,14 @@ void Game::handle_input(SDL_Event e, bool*quit){
 		if(e.key.keysym.sym == SDLK_d){
 			x += UNIT * (int)(x<(SCREEN_WIDTH - UNIT*current_piece_width));
 		}
+		if(e.key.keysym.sym == SDLK_s){
+			falling_speed = faster_falling_speed;
+		}
 		break;
 	case SDL_KEYUP:
+		if(e.key.keysym.sym == SDLK_s){
+			falling_speed = base_falling_speed;
+		}
         break;
 	default:
 		break;
@@ -43,45 +58,96 @@ void Game::run(){
 	std::mt19937 rng(rd());
 	bool quit = false;
 	SDL_Event e;
-	float y = 1;
     int w = UNIT*2; 
 	int h = UNIT*2;
     float delta_time = 0;
-    float falling_speed = 30;
 	SDL_Renderer *gRenderer = get_renderer();
 	bool spawn_new_piece = true;
 	int r =0;
+	int c = 0;
 	while( !quit )
 	{
         auto start = std::chrono::high_resolution_clock::now();
-		if( SDL_PollEvent( &e ) )
+		if(SDL_PollEvent(&e))
 		{
 			handle_input(e, &quit);
 		}
 		render_background();
-		render_grid(20, 10);
+		render_grid(GAME_HEIGHT, GAME_WIDTH);
 
 		if(spawn_new_piece){
 			std::uniform_int_distribution<int> piece_generator(0,4); // Guaranteed unbiased
 			r = piece_generator(rng);
 			current_piece_width = pieces[r].get_width();
+			current_piece_height = pieces[r].get_height();
+			y = 1;
 			x = 2 + (SCREEN_WIDTH / 2) - ((int)current_piece_width/2) - UNIT;
 			spawn_new_piece = false;
 		}
 
-		render_piece(x,y,pieces[r].get_coords());
-		//render_L_inverse(x,y);
-		
-
-
+		render_piece(x, y, pieces[r].get_coords());
+		render_P();
 		render_to_screen();
         auto end = std::chrono::high_resolution_clock::now();
         auto dur = end - start;
         delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();               
         y+=(delta_time*falling_speed);
+		int unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT) + current_piece_height; 
+		int unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
+		
+		for(auto &p : pieces[r].get_coords()){
+			// instead of checking all the boolean things
+			// we just check the neighbours of the piece
+			if(unit_y == GAME_HEIGHT){
+				spawn_new_piece = true;
+				break;
+			}
+			int adjusted_x = unit_x + std::get<0>(p);
+			int adjusted_y = unit_y - current_piece_height + std::get<1>(p) + 1; // +1 to check below 1
+			if(P[adjusted_x][adjusted_y]){
+				spawn_new_piece = true;
+				break;
+			}
+		}
+
+		if(spawn_new_piece){
+			for(auto &p : pieces[r].get_coords()){
+				int adjusted_x = unit_x + std::get<0>(p);
+				int adjusted_y = unit_y - current_piece_height + std::get<1>(p); 
+				P[adjusted_x][adjusted_y] = true;
+			}
+		}
+
+		if(spawn_new_piece){
+			for(int j=0;j<GAME_HEIGHT;j++){
+				for(int i=0; i<GAME_WIDTH; i++){
+					std::cout<<(int)P[i][j]<<" ";
+				}
+				std::cout<<std::endl;
+			}
+			std::cout<<std::endl;
+		}
+		//if(y>SCREEN_HEIGHT - (current_piece_height * UNIT) - 1){
+		//	y = SCREEN_HEIGHT - (current_piece_height * UNIT) - 1;
+		//	
+		//}
+	}
+	// TODO: stop at floor and accumulate pieces (you need them to make tetris)
+	// TODO: spawn more than one piece
+	// TODO: Make pieces stack
+	// TODO: Make that if there's a line, it gets deleted
+}
+void Game::render_P(){
+	for(int i=0; i<GAME_WIDTH; i++){
+		for(int j=0;j<GAME_HEIGHT;j++){
+			if(P[i][j]){
+				SDL_Rect fillRect = { i*UNIT, j*UNIT, UNIT, UNIT};
+				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
+				SDL_RenderFillRect( gRenderer, &fillRect );
+			}
+		}
 	}
 }
-
 bool Game::init()
 {
 	//Initialization flag

@@ -7,6 +7,7 @@ class Piece{
     private:
         int id;
         int width;
+        int height;
         std::string name;
         std::vector<std::tuple<int, int>> coords;
     public:
@@ -22,5 +23,6 @@ class Piece{
         std::string get_name() {return name;}
         int get_id() {return id;}
         int get_width() {return width;}
+        int get_height(){return height;}
 };
 #endif

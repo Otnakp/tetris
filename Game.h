@@ -12,19 +12,29 @@
 #include <random>
 class Game
 {
+
+public:
+    const int GAME_WIDTH = 10;
+    const int GAME_HEIGHT = 20;
+    const int SCREEN_WIDTH = 300;
+    const int SCREEN_HEIGHT = 2*SCREEN_WIDTH;
+    const int UNIT = SCREEN_WIDTH / GAME_WIDTH; // How big 1 small square is
 private:
     SDL_Renderer *gRenderer;
     SDL_Window*gWindow;
     bool init();
     void handle_input(SDL_Event e,  bool *quit);
+    float falling_speed = 30;
+    float base_falling_speed = 50;
+    float faster_falling_speed = 300;
+	float y = 1;
     float x = 1;
     int current_piece_width = 2;
+    int current_piece_height = 2;
     SDL_Texture* loadTexture( std::string path, SDL_Renderer *gRenderer);
     std::vector<Piece> pieces;
+    bool **P;
 public:
-    const int SCREEN_WIDTH = 300;
-    const int SCREEN_HEIGHT = 2*SCREEN_WIDTH;
-    const int UNIT = SCREEN_WIDTH / 10; // How big 1 small square is
     Game();
     ~Game();
     void run();
@@ -38,6 +48,7 @@ public:
     void render_L_inverse(float x, float y);
     void render_background();
     void render_grid(int columns, int rows);
+    void render_P();
     void render_to_screen(){SDL_RenderPresent(gRenderer);}
     SDL_Renderer*get_renderer(){return gRenderer;}
 };
