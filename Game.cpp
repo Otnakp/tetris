@@ -34,10 +34,10 @@ void Game::handle_input(SDL_Event e, bool*quit){
 	{
 	case SDL_KEYDOWN:
 		if(e.key.keysym.sym == SDLK_a){
-			x -= UNIT * (int)(x>1);
+			x -= UNIT * (int)(x > (current_piece_width > 2 ? current_piece_width/2 - 1 : 1) * (UNIT));
 		}
 		if(e.key.keysym.sym == SDLK_d){
-			x += UNIT * (int)(x<(SCREEN_WIDTH - UNIT*current_piece_width));
+			x += UNIT * (int)(x<(SCREEN_WIDTH - (UNIT)*(current_piece_width/2 + 1)));
 		}
 		if(e.key.keysym.sym == SDLK_s){
 			falling_speed = faster_falling_speed;
@@ -76,8 +76,9 @@ void Game::run(){
 		render_grid(GAME_HEIGHT, GAME_WIDTH);
 
 		if(spawn_new_piece){
-			std::uniform_int_distribution<int> piece_generator(0,4); // Guaranteed unbiased
+			std::uniform_int_distribution<int> piece_generator(0,NUMBER_OF_PIECES - 1); // Guaranteed unbiased
 			r = piece_generator(rng);
+			r = 3;
 			current_piece_width = pieces[r].get_width();
 			current_piece_height = pieces[r].get_height();
 			y = 1;

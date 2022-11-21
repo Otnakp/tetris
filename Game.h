@@ -19,6 +19,8 @@ public:
     const int SCREEN_WIDTH = 300;
     const int SCREEN_HEIGHT = 2*SCREEN_WIDTH;
     const int UNIT = SCREEN_WIDTH / GAME_WIDTH; // How big 1 small square is
+    const int NUMBER_OF_PIECES = 5;
+
 private:
     SDL_Renderer *gRenderer;
     SDL_Window*gWindow;
