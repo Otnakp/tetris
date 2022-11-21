@@ -29,7 +29,6 @@ Game::~Game()
 }
 
 bool Game::check_boundary(int bound, bool left){
-	int unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
 	bool limit = false;
 	for(auto &p:clone->get_coords()){
 		int adjusted_x = unit_x + std::get<0>(p);
@@ -45,7 +44,7 @@ bool Game::check_boundary(int bound, bool left){
 
 bool Game::check_bottom(){
 	for(auto &p:clone->get_coords()){
-		if(unit_y + std::get<1>(p) == GAME_HEIGHT){
+		if(unit_y +std::get<1>(p) == GAME_HEIGHT - 1){
 			return true;
 		}
 	}
@@ -69,6 +68,9 @@ void Game::handle_input(SDL_Event e, bool*quit){
 		}
 		if(e.key.keysym.sym == SDLK_s){
 			falling_speed = faster_falling_speed;
+		}
+		if(e.key.keysym.sym == SDLK_SPACE){
+			clone->rotate(true);
 		}
 		break;
 	case SDL_KEYUP:
@@ -112,25 +114,23 @@ void Game::run(){
 			spawn_new_piece = false;
 		}
 
-		render_piece(x, y, pieces[r].get_coords());
+		render_piece(x, y, clone->get_coords());
 		render_P();
 		render_to_screen();
         auto end = std::chrono::high_resolution_clock::now();
         auto dur = end - start;
         delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();               
         y+=(delta_time*falling_speed);
-		unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT) + clone->get_height(); 
+		unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT); 
 		unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
 		
-		for(auto &p : pieces[r].get_coords()){
-			// instead of checking all the boolean things
-			// we just check the neighbours of the piece
+		for(auto &p : clone->get_coords()){
 			if(check_bottom()){
 				spawn_new_piece = true;
 				break;
 			}
 			int adjusted_x = unit_x + std::get<0>(p);
-			int adjusted_y = unit_y -  clone->get_height()+ std::get<1>(p) + 1; // +1 to check below 1
+			int adjusted_y = unit_y + std::get<1>(p) + 1; // +1 to check below 1
 			if(P[adjusted_x][adjusted_y]){
 				spawn_new_piece = true;
 				break;
@@ -138,9 +138,9 @@ void Game::run(){
 		}
 
 		if(spawn_new_piece){
-			for(auto &p : pieces[r].get_coords()){
+			for(auto &p : clone->get_coords()){
 				int adjusted_x = unit_x + std::get<0>(p);
-				int adjusted_y = unit_y -  clone->get_height() + std::get<1>(p); 
+				int adjusted_y = unit_y + std::get<1>(p); 
 				P[adjusted_x][adjusted_y] = true;
 			}
 		}
@@ -159,6 +159,7 @@ void Game::run(){
 		//	
 		//}
 	}
+	// TODO: pieces that go out of screen break the game
 	// TODO: stop at floor and accumulate pieces (you need them to make tetris)
 	// TODO: spawn more than one piece
 	// TODO: Make pieces stack

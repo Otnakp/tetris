@@ -55,6 +55,33 @@ Piece::~Piece(){
     
 }
 
+
+void Piece::rotate(bool clock_wise){
+    if(id != 0){
+        int m = clock_wise ? 1:-1;
+        float a = 90.0*PI/180;
+        for(int i=0; i<coords.size(); i++){
+            int x = std::get<0>(coords[i]);
+            int y = std::get<1>(coords[i]);
+            std::cout<<x<<" "<<y<<std::endl<<std::flush;
+            //x = x * cos(a) - y * sin(a);
+            //y = x*sin(a)+y*cos(a);
+            // M = [[0,-1],[1,0]]
+            float new_x = y * (-1);
+            float new_y = x *(1);
+            x = new_x;
+            y = new_y;
+            coords[i] = std::make_tuple(x, y);
+            std::cout<<x<<" "<<y<<std::endl<<std::flush;
+            std::cout<<std::endl;
+            int t = width;
+            width = height;
+            height = t;
+        }
+    }
+
+}
+
 Piece* Piece::clone(){
     Piece*t = new Piece(this->name);
     return t;
