@@ -11,6 +11,7 @@ class Piece{
         std::string name;
         std::vector<std::tuple<int, int>> coords;
     public:
+        Piece*clone();
         const char* PIECE_SQUARE = "Square";
         const char* PIECE_T = "T";
         const char* PIECE_L = "L";

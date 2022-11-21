@@ -28,16 +28,44 @@ Game::~Game()
 	SDL_Quit();
 }
 
+bool Game::check_boundary(int bound, bool left){
+	int unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
+	bool limit = false;
+	for(auto &p:clone->get_coords()){
+		int adjusted_x = unit_x + std::get<0>(p);
+		if(left && adjusted_x <= bound){
+			return true;
+		}
+		if(!left && adjusted_x>=bound){
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Game::check_bottom(){
+	for(auto &p:clone->get_coords()){
+		if(unit_y + std::get<1>(p) == GAME_HEIGHT){
+			return true;
+		}
+	}
+	return false;
+}
+
 void Game::handle_input(SDL_Event e, bool*quit){
 	if( e.type == SDL_QUIT ){ *quit = true; }
 	switch (e.type)
 	{
 	case SDL_KEYDOWN:
 		if(e.key.keysym.sym == SDLK_a){
-			x -= UNIT * (int)(x > (current_piece_width > 2 ? current_piece_width/2 - 1 : 1) * (UNIT));
+			if(!check_boundary(0, true)){
+				x -= UNIT;
+			}
 		}
 		if(e.key.keysym.sym == SDLK_d){
-			x += UNIT * (int)(x<(SCREEN_WIDTH - (UNIT)*(current_piece_width/2 + 1)));
+			if(!check_boundary(GAME_WIDTH-1, false)){
+				x += UNIT;
+			}
 		}
 		if(e.key.keysym.sym == SDLK_s){
 			falling_speed = faster_falling_speed;
@@ -78,11 +106,9 @@ void Game::run(){
 		if(spawn_new_piece){
 			std::uniform_int_distribution<int> piece_generator(0,NUMBER_OF_PIECES - 1); // Guaranteed unbiased
 			r = piece_generator(rng);
-			r = 3;
-			current_piece_width = pieces[r].get_width();
-			current_piece_height = pieces[r].get_height();
+			clone = pieces[r].clone();
 			y = 1;
-			x = 2 + (SCREEN_WIDTH / 2) - ((int)current_piece_width/2) - UNIT;
+			x = 2 + (SCREEN_WIDTH / 2) - ((int)clone->get_width()/2) - UNIT;
 			spawn_new_piece = false;
 		}
 
@@ -93,18 +119,18 @@ void Game::run(){
         auto dur = end - start;
         delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();               
         y+=(delta_time*falling_speed);
-		int unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT) + current_piece_height; 
-		int unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
+		unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT) + clone->get_height(); 
+		unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
 		
 		for(auto &p : pieces[r].get_coords()){
 			// instead of checking all the boolean things
 			// we just check the neighbours of the piece
-			if(unit_y == GAME_HEIGHT){
+			if(check_bottom()){
 				spawn_new_piece = true;
 				break;
 			}
 			int adjusted_x = unit_x + std::get<0>(p);
-			int adjusted_y = unit_y - current_piece_height + std::get<1>(p) + 1; // +1 to check below 1
+			int adjusted_y = unit_y -  clone->get_height()+ std::get<1>(p) + 1; // +1 to check below 1
 			if(P[adjusted_x][adjusted_y]){
 				spawn_new_piece = true;
 				break;
@@ -114,7 +140,7 @@ void Game::run(){
 		if(spawn_new_piece){
 			for(auto &p : pieces[r].get_coords()){
 				int adjusted_x = unit_x + std::get<0>(p);
-				int adjusted_y = unit_y - current_piece_height + std::get<1>(p); 
+				int adjusted_y = unit_y -  clone->get_height() + std::get<1>(p); 
 				P[adjusted_x][adjusted_y] = true;
 			}
 		}
@@ -128,8 +154,8 @@ void Game::run(){
 			}
 			std::cout<<std::endl;
 		}
-		//if(y>SCREEN_HEIGHT - (current_piece_height * UNIT) - 1){
-		//	y = SCREEN_HEIGHT - (current_piece_height * UNIT) - 1;
+		//if(y>SCREEN_HEIGHT - ( clone->get_height() * UNIT) - 1){
+		//	y = SCREEN_HEIGHT - ( clone->get_height() * UNIT) - 1;
 		//	
 		//}
 	}

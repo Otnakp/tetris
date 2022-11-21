@@ -35,6 +35,11 @@ private:
     int current_piece_height = 2;
     SDL_Texture* loadTexture( std::string path, SDL_Renderer *gRenderer);
     std::vector<Piece> pieces;
+    Piece *clone = NULL; // this is a Piece clone
+    bool check_boundary(int bound, bool left);
+    bool check_bottom();
+    int unit_y;
+    int unit_x;
     bool **P;
 public:
     Game();

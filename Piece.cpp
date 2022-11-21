@@ -6,9 +6,9 @@ Piece::Piece(std::string name){
         width = 2;
         height = 2;
         coords.push_back(std::make_tuple(0, 0));
-        coords.push_back(std::make_tuple(0, 1));
-        coords.push_back(std::make_tuple(1, 0));
-        coords.push_back(std::make_tuple(1, 1));
+        coords.push_back(std::make_tuple(-1, 0));
+        coords.push_back(std::make_tuple(-1, -1));
+        coords.push_back(std::make_tuple(0, -1));
     }
     if(name == PIECE_LINE){
         id = 1;
@@ -55,3 +55,7 @@ Piece::~Piece(){
     
 }
 
+Piece* Piece::clone(){
+    Piece*t = new Piece(this->name);
+    return t;
+}
