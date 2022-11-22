@@ -6,6 +6,8 @@ Game::Game()
 	pieces.push_back(Piece("L"));
 	pieces.push_back(Piece("Inverse_L"));
 	pieces.push_back(Piece("T"));
+	pieces.push_back(Piece("Z"));
+	pieces.push_back(Piece("Inverse_Z"));
 	P = new bool*[GAME_HEIGHT]; 
 	for(int i=0; i<GAME_HEIGHT; i++){
 		P[i] = new bool[GAME_WIDTH];
@@ -68,8 +70,6 @@ void Game::check_tetris(){
 		}
 		if (full)
 		{
-			std::cout << "a" << std::endl<<std::flush;
-			std::cout << j<< std::endl<<std::flush;
 			to_pop.insert(to_pop.begin(), j);
 		}else{
 			to_keep.insert(to_keep.begin(), j);
@@ -107,6 +107,62 @@ bool Game::check_bottom(){
 	}
 	return false;
 }
+bool Game::check_spawn_new_piece(){
+	for(auto &p : clone->get_coords()){
+		if(check_bottom()){
+			return true;
+		}
+		int adjusted_x = unit_x + std::get<0>(p);
+		int adjusted_y = unit_y + std::get<1>(p) + 1; // +1 to check below 1
+		if(P[adjusted_x][adjusted_y]){
+			return true;
+		}
+	}
+	return false;
+}
+
+void Game::handle_input_new(bool *quit){
+	SDL_Event e;
+	while(SDL_PollEvent(&e)){
+		if( e.type == SDL_QUIT ){ *quit = true; }
+		const Uint8* keystates = SDL_GetKeyboardState(NULL);
+		switch (e.type)
+		{
+			case SDL_KEYDOWN:
+				if(keystates[SDL_SCANCODE_A]){
+					if(!check_boundary(0, true)){
+						x -= UNIT;
+					}
+				}
+				if(keystates[SDL_SCANCODE_D]){
+					if(!check_boundary(GAME_WIDTH-1, false)){
+						x += UNIT;
+					}
+				}
+				if(keystates[SDL_SCANCODE_S]){
+					falling_speed = faster_falling_speed;
+				}
+				if(keystates[SDL_SCANCODE_SPACE]){
+					clone->rotate(true);
+					modify_pos_after_rotation();
+				}
+				if(keystates[SDL_SCANCODE_DOWN]){
+					while(!check_spawn_new_piece()){
+						y += UNIT;
+						unit_y++;
+					}
+				}
+			break;
+			case(SDL_KEYUP):
+				if(keystates[SDL_SCANCODE_S]){
+					falling_speed = base_falling_speed;
+				}
+        	break;
+		default:
+			break;
+		}
+	}
+}
 
 void Game::handle_input(SDL_Event e, bool*quit){
 	if( e.type == SDL_QUIT ){ *quit = true; }
@@ -130,6 +186,12 @@ void Game::handle_input(SDL_Event e, bool*quit){
 			clone->rotate(true);
 			modify_pos_after_rotation();
 		}
+		if(e.key.keysym.sym == SDLK_DOWN){
+			while(!check_spawn_new_piece()){
+				y += UNIT;
+				unit_y++;
+			}
+		}
 		break;
 	case SDL_KEYUP:
 		if(e.key.keysym.sym == SDLK_s){
@@ -140,7 +202,12 @@ void Game::handle_input(SDL_Event e, bool*quit){
 		break;
 	}
 }
-
+void Game::check_lost(){
+	for(auto &p : clone->get_coords()){
+		int adjusted_y = unit_y + std::get<1>(p); 
+		if(adjusted_y<=-1){exit(0);}
+	}
+}
 void Game::run(){
 	std::random_device rd;
 	std::mt19937 rng(rd());
@@ -156,10 +223,13 @@ void Game::run(){
 	while( !quit )
 	{
         auto start = std::chrono::high_resolution_clock::now();
-		if(SDL_PollEvent(&e))
+		while(SDL_PollEvent(&e))
 		{
 			handle_input(e, &quit);
 		}
+
+		//handle_input_new(&quit);
+		
 		render_background();
 		render_grid(GAME_HEIGHT, GAME_WIDTH);
 
@@ -171,11 +241,11 @@ void Game::run(){
 			x = 2 + (SCREEN_WIDTH / 2) - ((int)clone->get_width()/2) - UNIT;
 			spawn_new_piece = false;
 		}
-
 		render_piece(x, y, clone->get_coords());
 		check_tetris();
 		render_P();
 		render_to_screen();
+
         auto end = std::chrono::high_resolution_clock::now();
         auto dur = end - start;
         delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(dur).count();               
@@ -183,46 +253,26 @@ void Game::run(){
 		unit_y = (int)((y/SCREEN_HEIGHT) * GAME_HEIGHT); 
 		unit_x = (int)((x/SCREEN_WIDTH) * GAME_WIDTH);
 		
-		for(auto &p : clone->get_coords()){
-			if(check_bottom()){
-				spawn_new_piece = true;
-				break;
-			}
-			int adjusted_x = unit_x + std::get<0>(p);
-			int adjusted_y = unit_y + std::get<1>(p) + 1; // +1 to check below 1
-			if(P[adjusted_x][adjusted_y]){
-				spawn_new_piece = true;
-				break;
-			}
-		}
-
+		spawn_new_piece = check_spawn_new_piece();
 		if(spawn_new_piece){
 			for(auto &p : clone->get_coords()){
 				int adjusted_x = unit_x + std::get<0>(p);
 				int adjusted_y = unit_y + std::get<1>(p); 
 				P[adjusted_x][adjusted_y] = true;
 			}
+			check_lost();
 		}
 
-		if(spawn_new_piece){
-			for(int j=0;j<GAME_HEIGHT;j++){
-				for(int i=0; i<GAME_WIDTH; i++){
-					std::cout<<(int)P[i][j]<<" ";
-				}
-				std::cout<<std::endl;
-			}
-			std::cout<<std::endl;
-		}
-		//if(y>SCREEN_HEIGHT - ( clone->get_height() * UNIT) - 1){
-		//	y = SCREEN_HEIGHT - ( clone->get_height() * UNIT) - 1;
-		//	
-		//}
 	}
-	// TODO: pieces that go out of screen break the game
-	// TODO: stop at floor and accumulate pieces (you need them to make tetris)
-	// TODO: spawn more than one piece
-	// TODO: Make pieces stack
-	// TODO: Make that if there's a line, it gets deleted
+}
+void Game::print_P(){
+	for(int j=0;j<GAME_HEIGHT;j++){
+		for(int i=0; i<GAME_WIDTH; i++){
+			std::cout<<(int)P[i][j]<<" ";
+		}
+		std::cout<<std::endl;
+	}
+	std::cout<<std::endl;
 }
 void Game::render_P(){
 	for(int i=0; i<GAME_WIDTH; i++){
@@ -282,6 +332,7 @@ bool Game::init()
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
+				
 			}
 		}
 	}

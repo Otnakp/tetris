@@ -20,6 +20,8 @@ class Piece{
         const char* PIECE_L = "L";
         const char* PIECE_INVERSE_L = "Inverse_L";
         const char* PIECE_LINE = "Line";
+        const char* PIECE_Z = "Z";
+        const char* PIECE_INVERSE_Z = "Inverse_Z";
         void rotate(bool clock_wise);
         Piece(){};
         Piece(std::string name);

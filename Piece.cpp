@@ -50,6 +50,27 @@ Piece::Piece(std::string name){
         coords.push_back(std::make_tuple(1, 0));
         coords.push_back(std::make_tuple(0, -1));
     }
+    if(name==PIECE_Z){
+        id = 5;
+        width = 3;
+        height = 2;
+        this->name = PIECE_Z;
+        coords.push_back(std::make_tuple(-1, 1));
+        coords.push_back(std::make_tuple(0, 1));
+        coords.push_back(std::make_tuple(0, 0));
+        coords.push_back(std::make_tuple(1, 0));
+    }
+
+    if(name==PIECE_INVERSE_Z){
+        id = 6;
+        width = 3;
+        height = 2;
+        this->name = PIECE_INVERSE_Z;
+        coords.push_back(std::make_tuple(1, 1));
+        coords.push_back(std::make_tuple(0, 1));
+        coords.push_back(std::make_tuple(0, 0));
+        coords.push_back(std::make_tuple(-1, 0));
+    }
 }
 Piece::~Piece(){
     
