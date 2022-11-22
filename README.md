@@ -1,2 +1,2 @@
-#Tetris
-c++ tetris project using SDL2
+# C++ Tetris with SDL2
+An implementation of the famous Tetris game in c++ using SDL2.
