@@ -58,8 +58,8 @@ void Game::modify_pos_after_rotation(){
 void Game::check_tetris(){
 	// Modifies the P matrix if an horizontal line/s is full
 	// By removing the line and shifting the upper matrix below
-	// done in not an efficient way
 	std::vector<int> to_pop;
+	std::vector<int> to_keep;
 
 	for (int j = 0; j < GAME_HEIGHT; j++){
 		bool full = true;
@@ -69,13 +69,33 @@ void Game::check_tetris(){
 		if (full)
 		{
 			std::cout << "a" << std::endl<<std::flush;
-			to_pop.push_back(j);
+			std::cout << j<< std::endl<<std::flush;
+			to_pop.insert(to_pop.begin(), j);
+		}else{
+			to_keep.insert(to_keep.begin(), j);
 		}
 	}
-	bool a[GAME_WIDTH] = {0}; // init all to false
-	for (auto &i : to_pop)
-	{
-		P[9][19] = false;
+	if(to_pop.size()>0){
+		bool**new_P = new bool*[GAME_HEIGHT]; 
+		for(int i=0; i<GAME_HEIGHT; i++){
+			new_P[i] = new bool[GAME_WIDTH];
+		}
+		for(int i=0; i<GAME_WIDTH; i++){
+			for(int j=0;j<GAME_HEIGHT;j++){
+				new_P[i][j] = false;
+			}
+		}
+		int p = 0;
+		for(int i=0; i<GAME_WIDTH; i++){
+			for(int j=GAME_HEIGHT-1; j>=0; j--){
+				if(p<to_keep.size()-1){
+					new_P[i][j] = P[i][to_keep[p]];
+					p += 1;
+				}
+			}
+			p = 0;
+		}
+		P = new_P;
 	}
 }
 
