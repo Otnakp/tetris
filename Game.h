@@ -57,6 +57,8 @@ public:
     void render_grid(int columns, int rows);
     void render_P();
     void render_to_screen(){SDL_RenderPresent(gRenderer);}
-    SDL_Renderer*get_renderer(){return gRenderer;}
+    void modify_pos_after_rotation();
+    void check_tetris();
+    SDL_Renderer *get_renderer() { return gRenderer; }
 };
 #endif

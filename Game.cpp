@@ -42,6 +42,43 @@ bool Game::check_boundary(int bound, bool left){
 	return false;
 }
 
+void Game::modify_pos_after_rotation(){
+	// check boundaries around the piece and eventually
+	// move the piece right or left if it is outside the screen
+	for(auto &p:clone->get_coords()){
+		if(1 + x + std::get<0>(p) * UNIT > SCREEN_WIDTH){
+			x -= UNIT;
+		}
+		if(x + std::get<0>(p) * UNIT<0){
+			x += UNIT;
+		}
+	}
+}
+
+void Game::check_tetris(){
+	// Modifies the P matrix if an horizontal line/s is full
+	// By removing the line and shifting the upper matrix below
+	// done in not an efficient way
+	std::vector<int> to_pop;
+
+	for (int j = 0; j < GAME_HEIGHT; j++){
+		bool full = true;
+		for (int i = 0; i < GAME_WIDTH;i++){
+			full = full && P[i][j];
+		}
+		if (full)
+		{
+			std::cout << "a" << std::endl<<std::flush;
+			to_pop.push_back(j);
+		}
+	}
+	bool a[GAME_WIDTH] = {0}; // init all to false
+	for (auto &i : to_pop)
+	{
+		P[9][19] = false;
+	}
+}
+
 bool Game::check_bottom(){
 	for(auto &p:clone->get_coords()){
 		if(unit_y +std::get<1>(p) == GAME_HEIGHT - 1){
@@ -71,6 +108,7 @@ void Game::handle_input(SDL_Event e, bool*quit){
 		}
 		if(e.key.keysym.sym == SDLK_SPACE){
 			clone->rotate(true);
+			modify_pos_after_rotation();
 		}
 		break;
 	case SDL_KEYUP:
@@ -115,6 +153,7 @@ void Game::run(){
 		}
 
 		render_piece(x, y, clone->get_coords());
+		check_tetris();
 		render_P();
 		render_to_screen();
         auto end = std::chrono::high_resolution_clock::now();

@@ -25,20 +25,20 @@ Piece::Piece(std::string name){
         this->name = PIECE_L;
         width = 2;
         height = 3;
-        coords.push_back(std::make_tuple(0, -2));
         coords.push_back(std::make_tuple(0, -1));
         coords.push_back(std::make_tuple(0, 0));
-        coords.push_back(std::make_tuple(1, 0));
+        coords.push_back(std::make_tuple(0, 1));
+        coords.push_back(std::make_tuple(1, 1));
     }
     if(name == PIECE_INVERSE_L){
         id = 3;
         width = 2;
         height = 3;
         this->name = PIECE_INVERSE_L;
-        coords.push_back(std::make_tuple(0, -2));
         coords.push_back(std::make_tuple(0, -1));
         coords.push_back(std::make_tuple(0, 0));
-        coords.push_back(std::make_tuple(-1, 0));
+        coords.push_back(std::make_tuple(0, 1));
+        coords.push_back(std::make_tuple(-1, 1));
     }
     if(name == PIECE_T){
         id = 4;
@@ -63,17 +63,11 @@ void Piece::rotate(bool clock_wise){
         for(int i=0; i<coords.size(); i++){
             int x = std::get<0>(coords[i]);
             int y = std::get<1>(coords[i]);
-            std::cout<<x<<" "<<y<<std::endl<<std::flush;
-            //x = x * cos(a) - y * sin(a);
-            //y = x*sin(a)+y*cos(a);
-            // M = [[0,-1],[1,0]]
             float new_x = y * (-1);
-            float new_y = x *(1);
+            float new_y = x * 1;
             x = new_x;
             y = new_y;
             coords[i] = std::make_tuple(x, y);
-            std::cout<<x<<" "<<y<<std::endl<<std::flush;
-            std::cout<<std::endl;
             int t = width;
             width = height;
             height = t;
