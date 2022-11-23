@@ -59,7 +59,9 @@ public:
     void render_background();
     void render_grid(int columns, int rows);
     void render_P();
-    void render_to_screen(){SDL_RenderPresent(gRenderer);}
+    bool check_left();
+    bool check_right();
+    void render_to_screen() { SDL_RenderPresent(gRenderer); }
     void modify_pos_after_rotation();
     void check_tetris();
     bool check_spawn_new_piece();

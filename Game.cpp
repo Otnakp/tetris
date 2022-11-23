@@ -163,18 +163,33 @@ void Game::handle_input_new(bool *quit){
 		}
 	}
 }
-
+bool Game::check_left(){
+	for(auto&p:clone->get_coords()){
+		if(P[unit_x + std::get<0>(p) - 1][unit_y + std::get<1>(p)+1]){
+			return true;
+		}
+	}
+	return false;
+}
+bool Game::check_right(){
+	for(auto&p:clone->get_coords()){
+		if(P[unit_x + std::get<0>(p) + 1][unit_y + std::get<1>(p)+1]){
+			return true;
+		}
+	}
+	return false;
+}
 void Game::handle_input(SDL_Event e, bool*quit){
 	if( e.type == SDL_QUIT ){ *quit = true; }
 	switch (e.type)
 	{
 	case SDL_KEYDOWN:
 		if(e.key.keysym.sym == SDLK_a){
-			if(!check_boundary(0, true)){
+			if(!check_boundary(0, true) && !check_left()){
 				x -= UNIT;
 			}
 		}
-		if(e.key.keysym.sym == SDLK_d){
+		if(e.key.keysym.sym == SDLK_d && !check_right()){
 			if(!check_boundary(GAME_WIDTH-1, false)){
 				x += UNIT;
 			}
